@@ -56,28 +56,36 @@ def add_box( polygons, x, y, z, width, height, depth ):
     add_polygon(polygons, x, y1, z, x, y1, z1, x, y, z1)
 
 def add_sphere(polygons, cx, cy, cz, r, steps ):
-    #FIX FIRST TRIANGLE - DO SECOND TRIANGLE - ACCOUNT FOR EDGE CASES (DEGENERATE TRIANGLE)
+    #fix middle band
     points = generate_sphere(cx, cy, cz, r, steps)
-
-    lat_start = 0
-    lat_stop = steps
-    longt_start = 0
-    longt_stop = steps
-
+    lat = 0
     steps+= 1
-    for lat in range(lat_start, lat_stop):
-        for longt in range(longt_start, longt_stop+1):
+    while lat < steps:
+        longt = 0
+        while longt < steps:        
             index = lat * steps + longt
-            if index < len(polygons) - 11:
+            if index < (len(points) - (1 + steps)):
                 add_polygon(polygons, points[index][0],
-                     points[index][1],
-                     points[index][2],
-                     points[index + 1][0],
-                     points[index + 1][1],
-                     points[index + 1][2],
-                     points[index + 11][0],
-                     points[index + 11][1],
-                     points[index + 11][2])
+                    points[index][1],
+                    points[index][2],
+                    points[index + 1][0],
+                    points[index + 1][1],
+                    points[index + 1][2],
+                    points[index + 1 + steps][0],
+                    points[index + 1 + steps][1],
+                    points[index + 1 + steps][2])
+                if (index % steps != 0) and (index % (steps - 1) != 0):
+                    add_polygon(polygons, points[index][0],
+                        points[index][1],
+                        points[index][2],
+                        points[index + 1 + steps][0],
+                        points[index + 1 + steps][1],
+                        points[index + 1 + steps][2],
+                        points[index + steps][0],
+                        points[index + steps][1],
+                        points[index + steps][2])
+            longt+=1
+        lat+=1
 
 def generate_sphere( cx, cy, cz, r, steps ):
     points = []
@@ -101,23 +109,33 @@ def generate_sphere( cx, cy, cz, r, steps ):
     return points
 
 def add_torus(polygons, cx, cy, cz, r0, r1, steps ):
-    points = generate_torus(cx, cy, cz, r0, r1, steps)
-
-    lat_start = 0
-    lat_stop = steps
-    longt_start = 0
-    longt_stop = steps
-
-    for lat in range(lat_start, lat_stop):
-        for longt in range(longt_start, longt_stop):
+    points = generate_torus(cx, cy, cz, r0, r1, steps )
+    lat = 0
+    while lat < steps:
+        longt = 0
+        while longt < steps:        
             index = lat * steps + longt
-
-            add_edge(polygons, points[index][0],
-                     points[index][1],
-                     points[index][2],
-                     points[index][0]+1,
-                     points[index][1]+1,
-                     points[index][2]+1 )
+            if index < (len(points) - (1 + steps)):
+                add_polygon(polygons, points[index][0],
+                    points[index][1],
+                    points[index][2],
+                    points[index + steps][0],
+                    points[index + steps][1],
+                    points[index + steps][2],
+                    points[index + 1 + steps][0],
+                    points[index + 1 + steps][1],
+                    points[index + 1 + steps][2])
+                add_polygon(polygons, points[index][0],
+                        points[index][1],
+                        points[index][2],
+                        points[index + 1 + steps][0],
+                        points[index + 1 + steps][1],
+                        points[index + 1 + steps][2],
+                        points[index + 1][0],
+                        points[index + 1][1],
+                        points[index + 1][2])
+            longt+=1
+        lat+=1
 
 def generate_torus( cx, cy, cz, r0, r1, steps ):
     points = []
@@ -145,7 +163,7 @@ def add_circle( points, cx, cy, cz, r, steps ):
     i = 1
 
     while i <= steps:
-        t = float(i)/steps
+        t = double(i)/steps
         x1 = r * math.cos(2*math.pi * t) + cx;
         y1 = r * math.sin(2*math.pi * t) + cy;
 
